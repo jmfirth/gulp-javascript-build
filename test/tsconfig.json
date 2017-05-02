@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "rootDir": "./",
+        "project": "**/*.ts",
+        "outDir": "./",
+        "target": "es5",
+        "module": "es6",
+        "lib": ["es6", "dom"],
+        "inlineSourceMap": true,
+        "noEmitOnError": true,
+        "declaration": true,
+        "listFiles": false,
+        "moduleResolution": "node",
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "noUnusedLocals": true,
+        "allowSyntheticDefaultImports": true
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.d.ts"
+    ],
+    "exclude": [
+        "./node_modules"
+    ],
+    "types": [
+      "typePatches"
+    ]
+}

@@ -1,75 +1,60 @@
-const babel = require('babelify');
-const browserify = require('browserify');
-const buffer = require('vinyl-buffer');
-const console = require('console');
-const es2015 = require('babel-preset-es2015');
-const gutil = require('gulp-util');
 const path = require('path');
-const rename = require('gulp-rename');
-const source = require('vinyl-source-stream');
+const gulp = require('gulp');
+const rollup = require('rollup-stream');
 const sourcemaps = require('gulp-sourcemaps');
-const uglify = require('gulp-uglify');
-const watchify = require('watchify');
-const yargs = require('yargs').argv;
+const source = require('vinyl-source-stream');
+const buffer = require('vinyl-buffer');
+const tslint = require('gulp-tslint');
+const size = require('gulp-size');
+const plumber = require('gulp-plumber');
+const rename = require('gulp-rename');
+const yargs = require('yargs');
 
-class JSBuild {
-    constructor(src, dest, gulp) {
-        this._src = src;
-        this._destinations =
-            Array.isArray(dest)
-                ? dest
-                : [dest];
+const createRollupConfig = require('./rollupConfig');
 
-        this._verbose = yargs.verbose;
-        this._gulp = gulp;
+class TSBuild {
+    constructor(entry, dest, entryGlob, rollupConfig) {
+        this.entry = entry;
+        this.entryPath = path.parse(entry);
+        this.entryGlob = entryGlob;
 
-        this._bundler = browserify(this._src,
-        {
-            debug: true
-        })
-        .transform(babel.configure({
-            presets: [es2015]
-        }));
+        this.dest = dest;
+        this.destPath = path.parse(dest);
 
+        this.verbose = yargs.verbose;
+        this.gulp = gulp;
+
+        this.rollupConfig = rollupConfig || createRollupConfig(entry, dest);
+
+        this.lint = this.lint.bind(this);
         this.build = this.build.bind(this);
         this.watch = this.watch.bind(this);
     }
 
-    build() {
-        const stream = this._bundler
-            .bundle()
-            .on('error',
-                function (err) {
-                    console.error(err);
-                    this.emit('end');
-                })
-            .pipe(source(path.basename(this._destinations[0])))
-            .pipe(buffer())
-            .pipe(sourcemaps.init({
-                loadMaps: true
-            }))
-            .pipe(this._verbose ? gutil.noop() : uglify())
-            .pipe(sourcemaps.write('./'));
+    lint() {
+        return gulp.src(this.entryGlob)
+            .pipe(tslint({ formatter: 'prose' }))
+            .pipe(tslint.report({ emitError: false }));
+    }
 
-        return this._destinations
-            .reduce(
-                (str, dest) =>
-                    str
-                        .pipe(rename(path.basename(dest)))
-                        .pipe(this._gulp.dest(path.dirname(dest))),
-                stream);
+    build() {
+        return plumber()
+            .pipe(rollup(this.rollupConfig))
+            .pipe(source(this.entryPath.base, this.entryPath.dir))
+            .pipe(buffer())
+            .pipe(rename(`${this.destPath.base}`))
+            .pipe(sourcemaps.init({ loadMaps: true }))
+            .pipe(sourcemaps.write('.'))
+            .pipe(size())
+            .pipe(gulp.dest(this.destPath.dir));
     }
 
     watch() {
-        this._bundler = watchify(this._bundler);
-        this._bundler.on('update', () => {
-            const src = gutil.colors.cyan(this._src);
-            gutil.log(`Rebuilding '${src}'...`);
+        gulp.watch(this.entryGlob, () => {
+            this.lint();
             this.build();
         });
-
-        this.build();
     }
 }
 
-module.exports = JSBuild;
+module.exports = TSBuild;

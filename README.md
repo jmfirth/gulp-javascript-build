@@ -1,35 +1,35 @@
-# GeekHive Gulp JavaScript Build
+# GeekHive Gulp TypeScript Build
 
-A simplified, standardized, gulp-compatible build script to bundle a source file using Browserify, Babel, and Uglify.
+A simplified, standardized, gulp-compatible build script to bundle a source file using TypeScript, Rollup and Uglify.
 
 ## Installation
 
 Using NPM
 
 ```
-npm install geekhive/gulp-javascript-build --save-dev
+npm install geekhive/gulp-typescript-build --save-dev
 ```
 
 Using yarn
 
 ```
-yarn add geekhive/gulp-javascript-build --dev
+yarn add geekhive/gulp-typescript-build --dev
 ```
 
 ## Usage
 
-Require `@geekhive/gulp-javascript-build` to access the build class.
+Require `@geekhive/gulp-typescript-build` to access the build class.
 
 ```
-const JSBuild = require('@geekhive/gulp-javascript-build');
+const TSBuild = require('@geekhive/gulp-typescript-build');
 ```
 
-### `new JSBuild(src, dest, gulp)`
+### `new TSBuild(src, dest, gulp)`
 
-Create a new `JSBuild` object by passing it source and destination paths for the file to bundle as well as a reference to `gulp`.
+Create a new `TSBuild` object by passing it source and destination paths for the file to bundle as well as a reference to `gulp`.
 
 ```
-const js = new JSBuild(
+const js = new TSBuild(
   `${__dirname}/assets/js/site.js`,
   `${__dirname}/assets/js/site.min.js`,
   gulp);
@@ -38,7 +38,7 @@ const js = new JSBuild(
 The `dest` argument may also be an array of destinations.
 
 ```
-const js = new JSBuild(
+const js = new TSBuild(
     `${__dirname}/assets/js/site.js`,
     [
         `${__dirname}/assets/js/site.min.js`,
@@ -47,9 +47,9 @@ const js = new JSBuild(
     gulp);
 ```
 
-### `JSBuild#build()`
+### `TSBuild#build()`
 
-The `JSBuild#build` method can be passed directly to gulp as a build task:
+The `TSBuild#build` method can be passed directly to gulp as a build task:
 
 ```
 gulp.task('build:js', js.build);
@@ -57,9 +57,9 @@ gulp.task('build:js', js.build);
 
 Calling `js.build` will bundle the source script using Browserify, Babel and Uglify and output the result to the destination location.
 
-### `JSBuild#watch()`
+### `TSBuild#watch()`
 
-The `JSBuild#watch` method can be passed directly to gulp as a watch task:
+The `TSBuild#watch` method can be passed directly to gulp as a watch task:
 
 ```
 gulp.task('watch:js', js.watch);
