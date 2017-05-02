@@ -7,7 +7,7 @@ const tslint = require('gulp-tslint');
 const size = require('gulp-size');
 const plumber = require('gulp-plumber');
 const rename = require('gulp-rename');
-const yargs = require('yargs');
+const yargs = require('yargs').argv;
 const createRollupConfig = require('./rollupConfig');
 
 const isObject = a => typeof a === 'object';
