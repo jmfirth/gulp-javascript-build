@@ -1,5 +1,4 @@
 const path = require('path');
-const gulp = require('gulp');
 const rollup = require('rollup-stream');
 const sourcemaps = require('gulp-sourcemaps');
 const source = require('vinyl-source-stream');
@@ -9,14 +8,16 @@ const size = require('gulp-size');
 const plumber = require('gulp-plumber');
 const rename = require('gulp-rename');
 const yargs = require('yargs');
-
 const createRollupConfig = require('./rollupConfig');
 
+const isObject = a => typeof a === 'object';
+const isString = s => typeof s === 'string';
+
 class TSBuild {
-    constructor(entry, dest, entryGlob, rollupConfig) {
+    constructor(entry, dest, srcGlob, gulp) {
         this.entry = entry;
         this.entryPath = path.parse(entry);
-        this.entryGlob = entryGlob;
+        this.srcGlob = srcGlob;
 
         this.dest = dest;
         this.destPath = path.parse(dest);
@@ -24,35 +25,41 @@ class TSBuild {
         this.verbose = yargs.verbose;
         this.gulp = gulp;
 
-        this.rollupConfig = rollupConfig || createRollupConfig(entry, dest);
-
         this.lint = this.lint.bind(this);
         this.build = this.build.bind(this);
         this.watch = this.watch.bind(this);
     }
 
-    lint() {
-        return gulp.src(this.entryGlob)
-            .pipe(tslint({ formatter: 'prose' }))
-            .pipe(tslint.report({ emitError: false }));
+    lint(lintOptions, reportOptions) {
+        return this.gulp.src(this.srcGlob)
+            .pipe(tslint(
+                isObject(lintOptions) ? lintOptions : { formatter: 'prose' }
+            ))
+            .pipe(tslint.report(
+                isObject(reportOptions) ? reportOptions : { emitError: false }
+            ));
     }
 
-    build() {
+    build(rollupConfig) {
         return plumber()
-            .pipe(rollup(this.rollupConfig))
+            .pipe(rollup(
+                isObject(rollupConfig) || isString(rollupConfig)
+                    ? rollupConfig
+                    : createRollupConfig(this.entry, this.dest)
+            ))
             .pipe(source(this.entryPath.base, this.entryPath.dir))
             .pipe(buffer())
             .pipe(rename(`${this.destPath.base}`))
             .pipe(sourcemaps.init({ loadMaps: true }))
             .pipe(sourcemaps.write('.'))
             .pipe(size())
-            .pipe(gulp.dest(this.destPath.dir));
+            .pipe(this.gulp.dest(this.destPath.dir));
     }
 
-    watch() {
-        gulp.watch(this.entryGlob, () => {
-            this.lint();
-            this.build();
+    watch(lintOptions, reportOptions, rollupConfig) {
+        this.gulp.watch(this.srcGlob, () => {
+            this.lint(lintOptions, reportOptions);
+            this.build(rollupConfig);
         });
     }
 }

@@ -17,7 +17,6 @@
   },
   "homepage": "https://github.com/GeekHive/gulp-typescript-build#readme",
   "dependencies": {
-    "gulp": "^3.9.1",
     "gulp-plumber": "^1.1.0",
     "gulp-rename": "^1.2.2",
     "gulp-size": "^2.1.0",
